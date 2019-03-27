@@ -38,7 +38,7 @@
 
 //multiply ticks by the number of inches to travel and it will travel almost exactly that far
 /*
-		
+
 		circumference = 3.25 * 3.14
 		Encoder ticks = (360 / circumference)
 		Distance you want to travel = encoder ticks * inches you want to travel
@@ -58,14 +58,14 @@
 
 float circumference = 2.75*3.14;						//diameter of the omni wheels is actually 4.125 but 2.75 gets better results
 float ticks = -(360/circumference);					//this is how many ticks the robot will travel ~35.2768251 per inch
-int timeForTurning = 300;							//this is how long the motors run to be able to turn 90 degrees. =.3 seconds
+int turnRev = -310;							//this is how long the motors run to be able to turn 90 degrees. =.3 seconds
 
 /* this function takes in a distance and a speed. the robot will travel the distance sent in
 	 and the motors will run at the speeds sent in.
 */
 void driveDistance(int inches, int speed)
 {
-	
+
   nMotorEncoder[rightRear] = 0;
 
   float targetDistance = ticks*inches;
@@ -111,7 +111,7 @@ void pre_auton()
 
 /* start with the elbow all the way in
 	 the shoulder all the way down
-	 so the claw is facing up with claw fully closed  
+	 so the claw is facing up with claw fully closed
 */
 task autonomous()
 {
@@ -119,18 +119,355 @@ task autonomous()
 	 while (true)
   {
 
-///********************************************************************************************************************/
-///* Program 1
-// * Blue team. On a team with another ROBOT. starting on the Blue square farthest away from flags
+/********************************************************************************************************************/
+/* Program 1
+ * Blue team. On a team with another ROBOT. starting on the Blue square farthest away from flags
+ * Face robot directly at the cap that is sitting on the ball
+ * Robot will lift the cap off of the ball
+ * then it will turn, travel to the next nearest cap, drop the first cap, pick up the 2nd cap, flip it over and set it down
+ * then the robot will park on the blue platform
+*/
+
+
+
+	 //move the elbow down so the claw is out front
+	 	//when the elbow is all the way back it sends a 1 to the stop sensor
+	 			if(SensorValue[elbowStop] == 1){
+	 					SensorValue[elbowGauge] = 0;		//resets the elbow sensor gauge to 0 so the starting point of the encoder is always the same
+	 					nMotorEncoder[rightRear] = 0;
+	 		}
+	 		//opens the claw while moving the claw level with the playing field
+	 		while(SensorValue[elbowGauge] > -160){
+	 				motor[elbow] = 40;
+	 				motor[claw] = 50;
+	 			}
+	 	 driveDistance(38, 80);						//drive forward 42.2 inches
+		 clearTimer(T1);								//resets the timer to 0
+		 //close the claw
+		 while(time1[T1] < 500){				//closes the claw for .6 seconds
+		 			motor[claw] = -60;
+			  	}
+		 clearTimer(T1);								//resets the timer to 0
+		 //lift the elbow to pull the cap off the ground
+
+	 		SensorValue[elbowGauge] = 0;		//resets the elbow sensor gauge to 0 so the starting point of the encoder is always the same
+	 		//opens the claw while moving the claw level with the playing field
+	 		while(SensorValue[elbowGauge] < 60){
+	 				motor[elbow] = -60;
+	 			}
+		 //while(time1[T1] < 1000){				//run for 2 seconds
+		 //  		motor[elbow] = -50;
+			//  	}
+		 //clearTimer(T1);								//resets the timer to 0
+		driveDistance(8, 80);
+		clearTimer(T1);								//resets the timer to 0
+		 //lift the elbow to pull the cap off the ground
+		 while(SensorValue[elbowGauge] > 55){
+	 				motor[elbow] = 50;
+	 			}
+		clearTimer(T1);								//resets the timer to 0
+		 while(time1[T1] < 500){				//opens the claw for .6 seconds
+		 			motor[claw] = 60;
+			  	}
+		//turn to the left to face the direction of the other cap
+
+		 //while(time1[T1] < timeForTurning){				//run for .3 seconds
+		 //			motor[leftMotor] = 80; 		// run the left motors backward
+	 	//			motor[leftRear] = 80;
+	 	//			motor[rightMotor] = -80; 		// run the right motors forward
+	 	//			motor[rightRear] = -80;
+			//  	}
+		 nMotorEncoder[rightRear] = 0;
+		 //turn left
+ 		 while(nMotorEncoder[rightRear] > turnRev){				//run for .3 seconds
+		  	 motor[leftMotor] = 80; 		// run the left motors backward
+				 motor[leftRear] = 80;
+				 motor[rightMotor] = -80; 		// run the right motors forward
+				 motor[rightRear] = -80;
+	  	}
+		 driveDistance(13, 80);						//drive forward 26 inches
+		 clearTimer(T1);								//resets the timer to 0
+		 //bring the elbow down to set the cap on the ground
+		 //while(time1[T1] < 100){				//run for .3 seconds
+		 //			motor[elbow] = 40;
+			//  	}
+		 //clearTimer(T1);								//resets the timer to 0
+		 //close the claw to set release the cap
+	  while(time1[T1] < 500){				//closes the claw for .6 seconds
+		 			motor[claw] = -60;
+			  	}
+		 //driveDistance(5, -80);						//drive backward 5 inches
+	 	 //clearTimer(T1);								//resets the timer to 0
+		//turn to the right to face the direction of the other cap
+	 	 //nMotorEncoder[rightRear] = 0;
+		 //while(nMotorEncoder[rightRear] < 315){				//run for .3 seconds
+		 //			motor[leftMotor] = -80; 		// run the left motors backward
+	 	//			motor[leftRear] = -80;
+	 	//			motor[rightMotor] = 80; 		// run the right motors forward
+	 	//			motor[rightRear] = 80;
+		//	  	}
+		// driveDistance(3, 80);						//drive forward 3 inches
+		 //clearTimer(T1);								//resets the timer to 0
+		 ////close the claw to grab the cap
+		 //while(time1[T1] < 600){				//closes the claw for .6 seconds
+		 //			motor[claw] = -40;
+			//  	}
+
+		 //lift the elbow to have room to spin the cap
+		 	SensorValue[elbowGauge] = 0;		//resets the elbow sensor gauge to 0 so the starting point of the encoder is always the same
+	 		//opens the claw while moving the claw level with the playing field
+	 		while(SensorValue[elbowGauge] < 60){
+	 				motor[elbow] = -60;
+	 			}
+		 clearTimer(T1);								//resets the timer to 0
+		 //flip the cap over
+		 while(time1[T1] < 2200){				//run for 3 seconds
+		   		motor[wrist] = 80;				//spin the wrist so the cap flips over
+			  	}
+		 clearTimer(T1);								//resets the timer to 0
+		 //put the cap back onto the ground
+		 while(SensorValue[elbowGauge] > 58){
+	 				motor[elbow] = 60;
+	 			}
+		 clearTimer(T1);								//resets the timer to 0
+		 //release the cap
+		 while(time1[T1] < 600){				//opens the claw for .6 seconds
+		 			motor[claw] = 60;
+			  	}
+		nMotorEncoder[rightRear] = 0;
+		while(nMotorEncoder[rightRear] > turnRev){				//run for .3 seconds
+		  	 motor[leftMotor] = 80; 		// run the left motors backward
+				 motor[leftRear] = 80;
+				 motor[rightMotor] = -80; 		// run the right motors forward
+				 motor[rightRear] = -80;
+	  	}
+	   wait1Msec(500);								//wait 30 seconds until the round is over
+		 driveDistance(5, 80);						//drive forward 26 inches
+		 wait1Msec(500);								//wait 30 seconds until the round is over
+		 nMotorEncoder[rightRear] = 0;
+		 while(nMotorEncoder[rightRear] > (turnRev-50)){				//run for .3 seconds
+		  	 motor[leftMotor] = 80; 		// run the left motors backward
+				 motor[leftRear] = 80;
+				 motor[rightMotor] = -80; 		// run the right motors forward
+				 motor[rightRear] = -80;
+	  	}
+		//drive towards the parking platform until the claw touches the platform
+			while(SensorValue[sonarInput] > 19){								//at full speed, after the motors stop the robot travels forward a few more inches
+						motor[leftMotor] = 80; 								// left motor runs. 127 is the max speed that the motor can run at
+			  		motor[rightMotor] = 80; 							// right motor runs
+			  		motor[leftRear] = 80; 								// left rear motor runs. 127 is the max speed that the motor can run at
+			  		motor[rightRear] = 80; 								// right rear motor runs
+						}
+			clearTimer(T1);								//resets the timer to 0
+		  //lift the shoulder up to add weight to wheels on the back
+			while(time1[T1] < 4000){				//run for 4 seconds
+		   		motor[shoulder] = -60;
+      		motor[shoulderHelper] = 60;
+			  	}
+			driveDistance(20, 80);						//drive forward 20 inches
+			//at this point the robot should be at least halfway up on the parking platform
+			clearTimer(T1);								//resets the timer to 0
+		  //bring the shoulder forward to add weight to the front wheels
+			while(time1[T1] < 1000){				//run for 1 seconds
+		   		motor[shoulder] = 60;
+      		motor[shoulderHelper] = -60;
+			  	}
+			driveDistance(4, 80);						//drive forward 4 inches onto the platform
+			wait1Msec(30000);								//wait 30 seconds until the round is over
+	} //end of outer while loop
+} //end of autonomous mode
+
+
+/*****************************************************************************************************************/
+///* Program 2
+//	 Blue team. On a team without another robot. starting on the Blue square closest to the flags
+//	 robot faces the cap that is sitting on a ball
+//	 drive forward to cap, lift cap, turn right, drive forward, drop cap, turn right, grab cap, spin cap over,
+//	 drive forward, drop cap, turn left, drive forward until flag is flipped to blue, drive in reverse until even with
+//	 parking platform, turn to face platform, drive forward until on platform
+//*/
+//	  //move the elbow down so the claw is out front
+//	 	//when the elbow is all the way back it sends a 1 to the stop sensor
+//	 			if(SensorValue[elbowStop] == 1){
+//	 					SensorValue[elbowGauge] = 0;		//resets the elbow sensor gauge to 0 so the starting point of the encoder is always the same
+//	 					nMotorEncoder[rightRear] = 0;
+//	 		}
+//	 		//opens the claw while moving the claw level with the playing field
+//	 		while(SensorValue[elbowGauge] > -160){
+//	 				motor[elbow] = 40;
+//	 				motor[claw] = 50;
+//	 			}
+//	 	 driveDistance(35, 80);						//drive forward 46 inches
+//		 clearTimer(T1);								//resets the timer to 0
+//		 //close the claw
+//		 while(time1[T1] < 600){				//closes the claw for .6 seconds
+//		 			motor[claw] = -60;
+//			  	}
+//		 clearTimer(T1);								//resets the timer to 0
+//		 //lift the elbow to pull the cap off the ground
+//		  SensorValue[elbowGauge] = 0;		//resets the elbow sensor gauge to 0 so the starting point of the encoder is always the same
+//	 		//opens the claw while moving the claw level with the playing field
+//	 		while(SensorValue[elbowGauge] < 60){
+//	 				motor[elbow] = -60;
+//	 			}
+///*		 while(time1[T1] < 300){				//run for .3 seconds
+//		   		motor[elbow] = -40;
+//			  	}*/
+//		 clearTimer(T1);								//resets the timer to 0
+//		//turn to the right to face the direction of the other cap
+	   //nMotorEncoder[rightRear] = 0;
+ 		 //while(nMotorEncoder[rightRear] > turnRev){				//run for .3 seconds
+		  //	 motor[leftMotor] = -80; 		// run the left motors backward
+				// motor[leftRear] = -80;
+				// motor[rightMotor] = 80; 		// run the right motors forward
+				// motor[rightRear] = 80;
+	  	//}
+///*		 while(time1[T1] < timeForTurning){				//run for .3 seconds
+//		 			motor[leftMotor] = 80; 		// run the left motors forward
+//	 				motor[leftRear] = 80;
+//	 				motor[rightMotor] = -80; 		// run the right motors backward
+//	 				motor[rightRear] = -80;
+//			  	}*/
+//		 driveDistance(13, 80);						//drive forward 26 inches
+//		 clearTimer(T1);								//resets the timer to 0
+//		 //bring the elbow down to set the cap on the ground
+			//while(SensorValue[elbowGauge] > 55){
+			//	 				motor[elbow] = 50;
+			//	 			}
+///*		 while(time1[T1] < 300){				//run for .3 seconds
+//		 			motor[elbow] = 40;
+//			  	}*/
+//		 clearTimer(T1);								//resets the timer to 0
+//		 //open the claw to set release the cap
+//		 while(time1[T1] < 500){				//opens the claw for .6 seconds
+//		 			motor[claw] = 60;
+//			  	}
+//	 	 clearTimer(T1);								//resets the timer to 0
+//		//turn to the right to face the direction of the other cap
+		//nMotorEncoder[rightRear] = 0;
+ 	//	 while(nMotorEncoder[rightRear] > turnRev){				//run for .3 seconds
+		//  	 motor[leftMotor] = -80; 		// run the left motors backward
+		//		 motor[leftRear] = -80;
+		//		 motor[rightMotor] = 80; 		// run the right motors forward
+		//		 motor[rightRear] = 80;
+	 // 	}
+///*		 while(time1[T1] < timeForTurning){				//run for .3 seconds
+//		 			motor[leftMotor] = 80; 		// run the left motors backward
+//	 				motor[leftRear] = 80;
+//	 				motor[rightMotor] = -80; 		// run the right motors forward
+//	 				motor[rightRear] = -80;
+//			  	}*/
+//		 driveDistance(5, 80);						//drive forward 5 inches
+//		 clearTimer(T1);								//resets the timer to 0
+//		 //close the claw to grab the cap
+//		 while(time1[T1] < 500){				//closes the claw for .6 seconds
+//		 			motor[claw] = -60;
+//			  	}
+//		 clearTimer(T1);								//resets the timer to 0
+//		 //lift the elbow to have room to spin the cap
+			//SensorValue[elbowGauge] = 0;		//resets the elbow sensor gauge to 0 so the starting point of the encoder is always the same
+			//	 		//opens the claw while moving the claw level with the playing field
+			//	 		while(SensorValue[elbowGauge] < 60){
+			//	 				motor[elbow] = -60;
+			//	 			}
+///*		 while(time1[T1] < 300){				//run for .3 seconds
+//		   		motor[elbow] = -40;				//lift the elbow to pull the cap off the ground
+//			  	}*/
+//		 clearTimer(T1);								//resets the timer to 0
+//		 //flip the cap over
+//		 while(time1[T1] < 2200){				//run for 3 seconds
+//		   		motor[wrist] = 80;				//spin the wrist so the cap flips over
+//			  	}
+//		 driveDistance(15, 80);				//drive forward 28 inches
+//		 clearTimer(T1);								//resets the timer to 0
+//		 //put the cap back onto the ground
+			//while(SensorValue[elbowGauge] > 58){
+			//	 				motor[elbow] = 60;
+			//	 			}
+///*		 while(time1[T1] < 300){				//run for .3 seconds
+//		   		motor[elbow] = 40;
+//			  	}*/
+//		 clearTimer(T1);								//resets the timer to 0
+//		 //release the cap
+//		 while(time1[T1] < 600){				//opens the claw for .6 seconds
+//		 			motor[claw] = 60;
+//			  	}
+
+//			driveDistance(2, -80);				//backup two inches
+//			clearTimer(T1);								//resets the timer to 0
+//		//turn to the left to face the direction of the flag
+			//nMotorEncoder[rightRear] = 0;
+			//		while(nMotorEncoder[rightRear] > turnRev){				//run for .3 seconds
+			//		  	 motor[leftMotor] = 80; 		// run the left motors backward
+			//				 motor[leftRear] = 80;
+			//				 motor[rightMotor] = -80; 		// run the right motors forward
+			//				 motor[rightRear] = -80;
+			//	  	}
+///*		 while(time1[T1] < timeForTurning){				//run for .3 seconds
+//		 			motor[leftMotor] = -80; 		// run the left motors backward
+//	 				motor[leftRear] = -80;
+//	 				motor[rightMotor] = 80; 		// run the right motors forward
+//	 				motor[rightRear] = 80;
+//			  	}*/
+
+//		while(SensorValue[elbowStop] == 0){
+//		   		motor[elbow] = -40;
+//		  }
+//		driveDistance(19, 80);					//drive forward until the flag is switched and you hit the outer wall
+//		wait1Msec(500);
+//		driveDistance(62.3,-80);				//drive backward until the robot is even with the parking platform
+//		clearTimer(T1);								//resets the timer to 0
+//		//turn to the left to face the direction of the parking platform
+		//nMotorEncoder[rightRear] = 0;
+		//while(nMotorEncoder[rightRear] > turnRev){				//run for .3 seconds
+		//  	 motor[leftMotor] = 80; 		// run the left motors backward
+		//		 motor[leftRear] = 80;
+		//		 motor[rightMotor] = -80; 		// run the right motors forward
+		//		 motor[rightRear] = -80;
+	 // 	}
+///*		 while(time1[T1] < timeForTurning){				//run for .3 seconds
+//		 			motor[leftMotor] = -80; 		// run the left motors backward
+//	 				motor[leftRear] = -80;
+//	 				motor[rightMotor] = 80; 		// run the right motors forward
+//	 				motor[rightRear] = 80;
+//			  	}*/
+//		clearTimer(T1);								//resets the timer to 0
+//		//lower the elbow
+//		while(time1[T1] < 1000){				//run for 1 second
+//		   		motor[elbow] = 40;
+//		}
+//		clearTimer(T1);								//resets the timer to 0
+//		//lift the shoulder to get the weight on the back of the robot
+//		while(time1[T1] < 4000){				//run for 4 seconds
+//		   		motor[shoulder] = -60;
+//      		motor[shoulderHelper] = 60;
+//		}
+//	  wait1Msec[1000];
+//		driveDistance(17.5,80);						//robot should be halfway on the platform
+//		clearTimer(T1);								//resets the timer to 0
+//	  //bring the shoulder forward to add weight to the front wheels
+//		while(time1[T1] < 1000){				//run for 1 seconds
+//	   		motor[shoulder] = 60;
+//    		motor[shoulderHelper] = -60;
+//		  	}
+//		driveDistance(4, 80);						//drive forward 4 inches onto the platform
+//		wait1Msec(30000);								//wait 30 seconds until the autonomous round is over
+//			} //end of outer while loop
+//} //end of autonomous mode
+
+
+/********************************************************************************************************************/
+///* Program 3
+// * Red team. On a team with another ROBOT. starting on the Red square farthest away from flags
 // * Face robot directly at the cap that is sitting on the ball
-// * Robot will lift the cap off of the ball 
+// * Robot will lift the cap off of the ball
 // * then it will turn, travel to the next nearest cap, drop the first cap, pick up the 2nd cap, flip it over and set it down
 // * then the robot will park on the blue platform
 //*/
 
-  
-	 	
-//	 //move the elbow down so the claw is out front
+
+
+//	  //move the elbow down so the claw is out front
 //	 	//when the elbow is all the way back it sends a 1 to the stop sensor
 //	 			if(SensorValue[elbowStop] == 1){
 //	 					SensorValue[elbowGauge] = 0;		//resets the elbow sensor gauge to 0 so the starting point of the encoder is always the same
@@ -148,39 +485,39 @@ task autonomous()
 //		 			motor[claw] = -40;
 //			  	}
 //		 clearTimer(T1);								//resets the timer to 0
-//		 //lift the elbow to pull the cap off the ground	
+//		 //lift the elbow to pull the cap off the ground
 //		 while(time1[T1] < 300){				//run for .3 seconds
-//		   		motor[elbow] = -40;				
+//		   		motor[elbow] = -40;
 //			  	}
 //		 clearTimer(T1);								//resets the timer to 0
-//		//turn to the left to face the direction of the other cap
+//		//turn to the right to face the direction of the other cap
 //		 while(time1[T1] < timeForTurning){				//run for .3 seconds
-//		 			motor[leftMotor] = -80; 		// run the left motors backward
-//	 				motor[leftRear] = -80;		
-//	 				motor[rightMotor] = 80; 		// run the right motors forward
-//	 				motor[rightRear] = 80;
+//		 			motor[leftMotor] = 80; 		// run the left motors backward
+//	 				motor[leftRear] = 80;
+//	 				motor[rightMotor] = -80; 		// run the right motors forward
+//	 				motor[rightRear] = -80;
 //			  	}
 //		 driveDistance(26, 80);						//drive forward 26 inches
 //		 clearTimer(T1);								//resets the timer to 0
 //		 //bring the elbow down to set the cap on the ground
 //		 while(time1[T1] < 300){				//run for .3 seconds
-//		 			motor[elbow] = 40;				
+//		 			motor[elbow] = 40;
 //			  	}
 //		 clearTimer(T1);								//resets the timer to 0
 //		 //open the claw to set release the cap
 //		 while(time1[T1] < 600){				//opens the claw for .6 seconds
 //		 			motor[claw] = 40;
 //			  	}
-//		 driveDistance(5, -80);						//drive backward 5 inches	  	
+//		 driveDistance(5, -80);						//drive backward 5 inches
 //	 	 clearTimer(T1);								//resets the timer to 0
-//		//turn to the right to face the direction of the other cap
+//		//turn to the left to face the direction of the other cap
 //		 while(time1[T1] < timeForTurning){				//run for .3 seconds
-//		 			motor[leftMotor] = 80; 		// run the left motors backward
-//	 				motor[leftRear] = 80;		
-//	 				motor[rightMotor] = -80; 		// run the right motors forward
-//	 				motor[rightRear] = -80;
+//		 			motor[leftMotor] = -80; 		// run the left motors backward
+//	 				motor[leftRear] = -80;
+//	 				motor[rightMotor] = 80; 		// run the right motors forward
+//	 				motor[rightRear] = 80;
 //			  	}
-//		 driveDistance(3, 80);						//drive forward 3 inches	  	  	
+//		 driveDistance(3, 80);						//drive forward 3 inches
 //		 clearTimer(T1);								//resets the timer to 0
 //		 //close the claw to grab the cap
 //		 while(time1[T1] < 600){				//closes the claw for .6 seconds
@@ -189,7 +526,7 @@ task autonomous()
 //		 clearTimer(T1);								//resets the timer to 0
 //		 //lift the elbow to have room to spin the cap
 //		 while(time1[T1] < 300){				//run for .3 seconds
-//		   		motor[elbow] = -40;				//lift the elbow to pull the cap off the ground	
+//		   		motor[elbow] = -40;				//lift the elbow to pull the cap off the ground
 //			  	}
 //		 clearTimer(T1);								//resets the timer to 0
 //		 //flip the cap over
@@ -199,20 +536,20 @@ task autonomous()
 //		 clearTimer(T1);								//resets the timer to 0
 //		 //put the cap back onto the ground
 //		 while(time1[T1] < 300){				//run for .3 seconds
-//		   		motor[elbow] = 40;				//lift the elbow to pull the cap off the ground	
-//			  	}  	
+//		   		motor[elbow] = 40;				//lift the elbow to pull the cap off the ground
+//			  	}
 //		 clearTimer(T1);								//resets the timer to 0
 //		 //release the cap
 //		 while(time1[T1] < 600){				//opens the claw for .6 seconds
 //		 			motor[claw] = 40;
 //			  	}
 //			clearTimer(T1);								//resets the timer to 0
-//		//turn to the right to face the direction of the parking platforms
+//		//turn to the left to face the direction of the parking platforms
 //		 while(time1[T1] < timeForTurning){				//run for .3 seconds
-//		 			motor[leftMotor] = 80; 		// run the left motors backward
-//	 				motor[leftRear] = 80;		
-//	 				motor[rightMotor] = -80; 		// run the right motors forward
-//	 				motor[rightRear] = -80;
+//		 			motor[leftMotor] = -80; 		// run the left motors backward
+//	 				motor[leftRear] = -80;
+//	 				motor[rightMotor] = 80; 		// run the right motors forward
+//	 				motor[rightRear] = 80;
 //			  	}
 //		//drive towards the parking platform until the claw touches the platform
 //			while(SensorValue[sonarInput] > 19){								//at full speed, after the motors stop the robot travels forward a few more inches
@@ -220,33 +557,32 @@ task autonomous()
 //			  		motor[rightMotor] = 80; 							// right motor runs
 //			  		motor[leftRear] = 80; 								// left rear motor runs. 127 is the max speed that the motor can run at
 //			  		motor[rightRear] = 80; 								// right rear motor runs
-//						}  
+//						}
 //			clearTimer(T1);								//resets the timer to 0
 //		  //lift the shoulder up to add weight to wheels on the back
 //			while(time1[T1] < 4000){				//run for 4 seconds
 //		   		motor[shoulder] = -60;
-//      		motor[shoulderHelper] = 60;				
-//			  	}  			
+//      		motor[shoulderHelper] = 60;
+//			  	}
 //			driveDistance(20, 80);						//drive forward 20 inches
 //			//at this point the robot should be at least halfway up on the parking platform
 //			clearTimer(T1);								//resets the timer to 0
 //		  //bring the shoulder forward to add weight to the front wheels
 //			while(time1[T1] < 1000){				//run for 1 seconds
 //		   		motor[shoulder] = 60;
-//      		motor[shoulderHelper] = -60;				
-//			  	}  						
-//			driveDistance(4, 80);						//drive forward 4 inches onto the platform			
+//      		motor[shoulderHelper] = -60;
+//			  	}
+//			driveDistance(4, 80);						//drive forward 4 inches onto the platform
 //			wait1Msec(30000);								//wait 30 seconds until the round is over
 //	} //end of outer while loop
-//} //end of autonomous mode	
+//} //end of autonomous mode
 
-
-/*****************************************************************************************************************/						
-///* Program 2
-//	 Blue team. On a team without another robot. starting on the Blue square closest to the flags
+/****************************************************************************************************************/
+///* Program 4
+//	 Red team. On a team without another robot. starting on the Red square closest to the flags
 //	 robot faces the cap that is sitting on a ball
 //	 drive forward to cap, lift cap, turn right, drive forward, drop cap, turn right, grab cap, spin cap over,
-//	 drive forward, drop cap, turn left, drive forward until flag is flipped to blue, drive in reverse until even with 
+//	 drive forward, drop cap, turn left, drive forward until flag is flipped to red, drive in reverse until even with
 //	 parking platform, turn to face platform, drive forward until on platform
 //*/
 //	  //move the elbow down so the claw is out front
@@ -267,38 +603,38 @@ task autonomous()
 //		 			motor[claw] = -40;
 //			  	}
 //		 clearTimer(T1);								//resets the timer to 0
-//		 //lift the elbow to pull the cap off the ground	
+//		 //lift the elbow to pull the cap off the ground
 //		 while(time1[T1] < 300){				//run for .3 seconds
-//		   		motor[elbow] = -40;				
+//		   		motor[elbow] = -40;
 //			  	}
 //		 clearTimer(T1);								//resets the timer to 0
-//		//turn to the right to face the direction of the other cap
+//		//turn to the left to face the direction of the other cap
 //		 while(time1[T1] < timeForTurning){				//run for .3 seconds
-//		 			motor[leftMotor] = 80; 		// run the left motors forward
-//	 				motor[leftRear] = 80;		
-//	 				motor[rightMotor] = -80; 		// run the right motors backward
-//	 				motor[rightRear] = -80;
+//		 			motor[leftMotor] = -80; 		// run the left motors forward
+//	 				motor[leftRear] = -80;
+//	 				motor[rightMotor] = 80; 		// run the right motors backward
+//	 				motor[rightRear] = 80;
 //			  	}
 //		 driveDistance(26, 80);						//drive forward 26 inches
 //		 clearTimer(T1);								//resets the timer to 0
 //		 //bring the elbow down to set the cap on the ground
 //		 while(time1[T1] < 300){				//run for .3 seconds
-//		 			motor[elbow] = 40;				
+//		 			motor[elbow] = 40;
 //			  	}
 //		 clearTimer(T1);								//resets the timer to 0
 //		 //open the claw to set release the cap
 //		 while(time1[T1] < 600){				//opens the claw for .6 seconds
 //		 			motor[claw] = 40;
-//			  	}	
-//	 	 clearTimer(T1);								//resets the timer to 0
-//		//turn to the right to face the direction of the other cap
-//		 while(time1[T1] < timeForTurning){				//run for .3 seconds
-//		 			motor[leftMotor] = 80; 		// run the left motors backward
-//	 				motor[leftRear] = 80;		
-//	 				motor[rightMotor] = -80; 		// run the right motors forward
-//	 				motor[rightRear] = -80;
 //			  	}
-//		 driveDistance(5, 80);						//drive forward 5 inches	  
+//	 	 clearTimer(T1);								//resets the timer to 0
+//		//turn to the left to face the direction of the other cap
+//		 while(time1[T1] < timeForTurning){				//run for .3 seconds
+//		 			motor[leftMotor] = -80; 		// run the left motors backward
+//	 				motor[leftRear] = -80;
+//	 				motor[rightMotor] = 80; 		// run the right motors forward
+//	 				motor[rightRear] = 80;
+//			  	}
+//		 driveDistance(5, 80);						//drive forward 5 inches
 //		 clearTimer(T1);								//resets the timer to 0
 //		 //close the claw to grab the cap
 //		 while(time1[T1] < 600){				//closes the claw for .6 seconds
@@ -307,7 +643,7 @@ task autonomous()
 //		 clearTimer(T1);								//resets the timer to 0
 //		 //lift the elbow to have room to spin the cap
 //		 while(time1[T1] < 300){				//run for .3 seconds
-//		   		motor[elbow] = -40;				//lift the elbow to pull the cap off the ground	
+//		   		motor[elbow] = -40;				//lift the elbow to pull the cap off the ground
 //			  	}
 //		 clearTimer(T1);								//resets the timer to 0
 //		 //flip the cap over
@@ -318,312 +654,59 @@ task autonomous()
 //		 clearTimer(T1);								//resets the timer to 0
 //		 //put the cap back onto the ground
 //		 while(time1[T1] < 300){				//run for .3 seconds
-//		   		motor[elbow] = 40;				
-//			  	}  	
+//		   		motor[elbow] = 40;
+//			  	}
 //		 clearTimer(T1);								//resets the timer to 0
 //		 //release the cap
 //		 while(time1[T1] < 600){				//opens the claw for .6 seconds
 //		 			motor[claw] = 40;
 //			  	}
-			
+
 //			driveDistance(2, -80);				//backup two inches
 //			clearTimer(T1);								//resets the timer to 0
-//		//turn to the left to face the direction of the flag
+//		//turn to the right to face the direction of the flag
 //		 while(time1[T1] < timeForTurning){				//run for .3 seconds
-//		 			motor[leftMotor] = -80; 		// run the left motors backward
-//	 				motor[leftRear] = -80;		
-//	 				motor[rightMotor] = 80; 		// run the right motors forward
-//	 				motor[rightRear] = 80;
+//		 			motor[leftMotor] = 80; 		// run the left motors backward
+//	 				motor[leftRear] = 80;
+//	 				motor[rightMotor] = -80; 		// run the right motors forward
+//	 				motor[rightRear] = -80;
 //			  	}
-		 
+
 //		while(SensorValue[elbowStop] == 0){
-//		   		motor[elbow] = -40; 	
+//		   		motor[elbow] = -40;
 //		  }
 //		driveDistance(32, 80);					//drive forward until the flag is switched and you hit the outer wall
 //		driveDistance(75.3,-80);				//drive backward until the robot is even with the parking platform
 //		clearTimer(T1);								//resets the timer to 0
-//		//turn to the left to face the direction of the parking platform
+//		//turn to the right to face the direction of the parking platform
 //		 while(time1[T1] < timeForTurning){				//run for .3 seconds
-//		 			motor[leftMotor] = -80; 		// run the left motors backward
-//	 				motor[leftRear] = -80;		
-//	 				motor[rightMotor] = 80; 		// run the right motors forward
-//	 				motor[rightRear] = 80;
+//		 			motor[leftMotor] = 80; 		// run the left motors backward
+//	 				motor[leftRear] = 80;
+//	 				motor[rightMotor] = -80; 		// run the right motors forward
+//	 				motor[rightRear] = -80;
 //			  	}
 //		clearTimer(T1);								//resets the timer to 0
-//		//lower the elbow 
+//		//lower the elbow
 //		while(time1[T1] < 1000){				//run for 1 second
-//		   		motor[elbow] = 40;	
-//		}  	
+//		   		motor[elbow] = 40;
+//		}
 //		clearTimer(T1);								//resets the timer to 0
 //		//lift the shoulder to get the weight on the back of the robot
 //		while(time1[T1] < 4000){				//run for 4 seconds
 //		   		motor[shoulder] = -60;
-//      		motor[shoulderHelper] = 60;		
-//		} 
+//      		motor[shoulderHelper] = 60;
+//		}
 //		driveDistance(17.5,80);						//robot should be halfway on the platform
 //		clearTimer(T1);								//resets the timer to 0
 //	  //bring the shoulder forward to add weight to the front wheels
 //		while(time1[T1] < 1000){				//run for 1 seconds
 //	   		motor[shoulder] = 60;
-//    		motor[shoulderHelper] = -60;				
-//		  	}  						
-//		driveDistance(4, 80);						//drive forward 4 inches onto the platform			
+//    		motor[shoulderHelper] = -60;
+//		  	}
+//		driveDistance(4, 80);						//drive forward 4 inches onto the platform
 //		wait1Msec(30000);								//wait 30 seconds until the autonomous round is over
 //			} //end of outer while loop
 //} //end of autonomous mode
-
-
-/********************************************************************************************************************/
-///* Program 3
-// * Red team. On a team with another ROBOT. starting on the Red square farthest away from flags
-// * Face robot directly at the cap that is sitting on the ball
-// * Robot will lift the cap off of the ball 
-// * then it will turn, travel to the next nearest cap, drop the first cap, pick up the 2nd cap, flip it over and set it down
-// * then the robot will park on the blue platform
-//*/
-
-  
-	 	
-//	  //move the elbow down so the claw is out front
-//	 	//when the elbow is all the way back it sends a 1 to the stop sensor
-//	 			if(SensorValue[elbowStop] == 1){
-//	 					SensorValue[elbowGauge] = 0;		//resets the elbow sensor gauge to 0 so the starting point of the encoder is always the same
-//	 					nMotorEncoder[rightRear] = 0;
-//	 		}
-//	 		//opens the claw while moving the claw level with the playing field
-//	 		while(SensorValue[elbowGauge] > -50){
-//	 				motor[elbow] = 40;
-//	 				motor[claw] = 40;
-//	 			}
-//	 	 driveDistance(42.2, 80);						//drive forward 42.2 inches
-//		 clearTimer(T1);								//resets the timer to 0
-//		 //close the claw
-//		 while(time1[T1] < 600){				//closes the claw for .6 seconds
-//		 			motor[claw] = -40;
-//			  	}
-//		 clearTimer(T1);								//resets the timer to 0
-//		 //lift the elbow to pull the cap off the ground	
-//		 while(time1[T1] < 300){				//run for .3 seconds
-//		   		motor[elbow] = -40;				
-//			  	}
-//		 clearTimer(T1);								//resets the timer to 0
-//		//turn to the right to face the direction of the other cap
-//		 while(time1[T1] < timeForTurning){				//run for .3 seconds
-//		 			motor[leftMotor] = 80; 		// run the left motors backward
-//	 				motor[leftRear] = 80;		
-//	 				motor[rightMotor] = -80; 		// run the right motors forward
-//	 				motor[rightRear] = -80;
-//			  	}
-//		 driveDistance(26, 80);						//drive forward 26 inches
-//		 clearTimer(T1);								//resets the timer to 0
-//		 //bring the elbow down to set the cap on the ground
-//		 while(time1[T1] < 300){				//run for .3 seconds
-//		 			motor[elbow] = 40;				
-//			  	}
-//		 clearTimer(T1);								//resets the timer to 0
-//		 //open the claw to set release the cap
-//		 while(time1[T1] < 600){				//opens the claw for .6 seconds
-//		 			motor[claw] = 40;
-//			  	}
-//		 driveDistance(5, -80);						//drive backward 5 inches	  	
-//	 	 clearTimer(T1);								//resets the timer to 0
-//		//turn to the left to face the direction of the other cap
-//		 while(time1[T1] < timeForTurning){				//run for .3 seconds
-//		 			motor[leftMotor] = -80; 		// run the left motors backward
-//	 				motor[leftRear] = -80;		
-//	 				motor[rightMotor] = 80; 		// run the right motors forward
-//	 				motor[rightRear] = 80;
-//			  	}
-//		 driveDistance(3, 80);						//drive forward 3 inches	  	  	
-//		 clearTimer(T1);								//resets the timer to 0
-//		 //close the claw to grab the cap
-//		 while(time1[T1] < 600){				//closes the claw for .6 seconds
-//		 			motor[claw] = -40;
-//			  	}
-//		 clearTimer(T1);								//resets the timer to 0
-//		 //lift the elbow to have room to spin the cap
-//		 while(time1[T1] < 300){				//run for .3 seconds
-//		   		motor[elbow] = -40;				//lift the elbow to pull the cap off the ground	
-//			  	}
-//		 clearTimer(T1);								//resets the timer to 0
-//		 //flip the cap over
-//		 while(time1[T1] < 3000){				//run for 3 seconds
-//		   		motor[wrist] = -40;				//spin the wrist so the cap flips over
-//			  	}
-//		 clearTimer(T1);								//resets the timer to 0
-//		 //put the cap back onto the ground
-//		 while(time1[T1] < 300){				//run for .3 seconds
-//		   		motor[elbow] = 40;				//lift the elbow to pull the cap off the ground	
-//			  	}  	
-//		 clearTimer(T1);								//resets the timer to 0
-//		 //release the cap
-//		 while(time1[T1] < 600){				//opens the claw for .6 seconds
-//		 			motor[claw] = 40;
-//			  	}
-//			clearTimer(T1);								//resets the timer to 0
-//		//turn to the left to face the direction of the parking platforms
-//		 while(time1[T1] < timeForTurning){				//run for .3 seconds
-//		 			motor[leftMotor] = -80; 		// run the left motors backward
-//	 				motor[leftRear] = -80;		
-//	 				motor[rightMotor] = 80; 		// run the right motors forward
-//	 				motor[rightRear] = 80;
-//			  	}
-//		//drive towards the parking platform until the claw touches the platform
-//			while(SensorValue[sonarInput] > 19){								//at full speed, after the motors stop the robot travels forward a few more inches
-//						motor[leftMotor] = 80; 								// left motor runs. 127 is the max speed that the motor can run at
-//			  		motor[rightMotor] = 80; 							// right motor runs
-//			  		motor[leftRear] = 80; 								// left rear motor runs. 127 is the max speed that the motor can run at
-//			  		motor[rightRear] = 80; 								// right rear motor runs
-//						}  
-//			clearTimer(T1);								//resets the timer to 0
-//		  //lift the shoulder up to add weight to wheels on the back
-//			while(time1[T1] < 4000){				//run for 4 seconds
-//		   		motor[shoulder] = -60;
-//      		motor[shoulderHelper] = 60;				
-//			  	}  			
-//			driveDistance(20, 80);						//drive forward 20 inches
-//			//at this point the robot should be at least halfway up on the parking platform
-//			clearTimer(T1);								//resets the timer to 0
-//		  //bring the shoulder forward to add weight to the front wheels
-//			while(time1[T1] < 1000){				//run for 1 seconds
-//		   		motor[shoulder] = 60;
-//      		motor[shoulderHelper] = -60;				
-//			  	}  						
-//			driveDistance(4, 80);						//drive forward 4 inches onto the platform			
-//			wait1Msec(30000);								//wait 30 seconds until the round is over
-//	} //end of outer while loop
-//} //end of autonomous mode	
-
-/****************************************************************************************************************/						
-/* Program 4
-	 Red team. On a team without another robot. starting on the Red square closest to the flags
-	 robot faces the cap that is sitting on a ball
-	 drive forward to cap, lift cap, turn right, drive forward, drop cap, turn right, grab cap, spin cap over,
-	 drive forward, drop cap, turn left, drive forward until flag is flipped to red, drive in reverse until even with 
-	 parking platform, turn to face platform, drive forward until on platform
-*/
-	  //move the elbow down so the claw is out front
-	 	//when the elbow is all the way back it sends a 1 to the stop sensor
-	 			if(SensorValue[elbowStop] == 1){
-	 					SensorValue[elbowGauge] = 0;		//resets the elbow sensor gauge to 0 so the starting point of the encoder is always the same
-	 					nMotorEncoder[rightRear] = 0;
-	 		}
-	 		//opens the claw while moving the claw level with the playing field
-	 		while(SensorValue[elbowGauge] > -50){
-	 				motor[elbow] = 40;
-	 				motor[claw] = 40;
-	 			}
-	 	 driveDistance(46, 80);						//drive forward 46 inches
-		 clearTimer(T1);								//resets the timer to 0
-		 //close the claw
-		 while(time1[T1] < 600){				//closes the claw for .6 seconds
-		 			motor[claw] = -40;
-			  	}
-		 clearTimer(T1);								//resets the timer to 0
-		 //lift the elbow to pull the cap off the ground	
-		 while(time1[T1] < 300){				//run for .3 seconds
-		   		motor[elbow] = -40;				
-			  	}
-		 clearTimer(T1);								//resets the timer to 0
-		//turn to the left to face the direction of the other cap
-		 while(time1[T1] < timeForTurning){				//run for .3 seconds
-		 			motor[leftMotor] = -80; 		// run the left motors forward
-	 				motor[leftRear] = -80;		
-	 				motor[rightMotor] = 80; 		// run the right motors backward
-	 				motor[rightRear] = 80;
-			  	}
-		 driveDistance(26, 80);						//drive forward 26 inches
-		 clearTimer(T1);								//resets the timer to 0
-		 //bring the elbow down to set the cap on the ground
-		 while(time1[T1] < 300){				//run for .3 seconds
-		 			motor[elbow] = 40;				
-			  	}
-		 clearTimer(T1);								//resets the timer to 0
-		 //open the claw to set release the cap
-		 while(time1[T1] < 600){				//opens the claw for .6 seconds
-		 			motor[claw] = 40;
-			  	}	
-	 	 clearTimer(T1);								//resets the timer to 0
-		//turn to the left to face the direction of the other cap
-		 while(time1[T1] < timeForTurning){				//run for .3 seconds
-		 			motor[leftMotor] = -80; 		// run the left motors backward
-	 				motor[leftRear] = -80;		
-	 				motor[rightMotor] = 80; 		// run the right motors forward
-	 				motor[rightRear] = 80;
-			  	}
-		 driveDistance(5, 80);						//drive forward 5 inches	  
-		 clearTimer(T1);								//resets the timer to 0
-		 //close the claw to grab the cap
-		 while(time1[T1] < 600){				//closes the claw for .6 seconds
-		 			motor[claw] = -40;
-			  	}
-		 clearTimer(T1);								//resets the timer to 0
-		 //lift the elbow to have room to spin the cap
-		 while(time1[T1] < 300){				//run for .3 seconds
-		   		motor[elbow] = -40;				//lift the elbow to pull the cap off the ground	
-			  	}
-		 clearTimer(T1);								//resets the timer to 0
-		 //flip the cap over
-		 while(time1[T1] < 3000){				//run for 3 seconds
-		   		motor[wrist] = -40;				//spin the wrist so the cap flips over
-			  	}
-		 driveDistance(28, 80);				//drive forward 28 inches
-		 clearTimer(T1);								//resets the timer to 0
-		 //put the cap back onto the ground
-		 while(time1[T1] < 300){				//run for .3 seconds
-		   		motor[elbow] = 40;				
-			  	}  	
-		 clearTimer(T1);								//resets the timer to 0
-		 //release the cap
-		 while(time1[T1] < 600){				//opens the claw for .6 seconds
-		 			motor[claw] = 40;
-			  	}
-			
-			driveDistance(2, -80);				//backup two inches
-			clearTimer(T1);								//resets the timer to 0
-		//turn to the right to face the direction of the flag
-		 while(time1[T1] < timeForTurning){				//run for .3 seconds
-		 			motor[leftMotor] = 80; 		// run the left motors backward
-	 				motor[leftRear] = 80;		
-	 				motor[rightMotor] = -80; 		// run the right motors forward
-	 				motor[rightRear] = -80;
-			  	}
-		 
-		while(SensorValue[elbowStop] == 0){
-		   		motor[elbow] = -40; 	
-		  }
-		driveDistance(32, 80);					//drive forward until the flag is switched and you hit the outer wall
-		driveDistance(75.3,-80);				//drive backward until the robot is even with the parking platform
-		clearTimer(T1);								//resets the timer to 0
-		//turn to the right to face the direction of the parking platform
-		 while(time1[T1] < timeForTurning){				//run for .3 seconds
-		 			motor[leftMotor] = 80; 		// run the left motors backward
-	 				motor[leftRear] = 80;		
-	 				motor[rightMotor] = -80; 		// run the right motors forward
-	 				motor[rightRear] = -80;
-			  	}
-		clearTimer(T1);								//resets the timer to 0
-		//lower the elbow 
-		while(time1[T1] < 1000){				//run for 1 second
-		   		motor[elbow] = 40;	
-		}  	
-		clearTimer(T1);								//resets the timer to 0
-		//lift the shoulder to get the weight on the back of the robot
-		while(time1[T1] < 4000){				//run for 4 seconds
-		   		motor[shoulder] = -60;
-      		motor[shoulderHelper] = 60;		
-		} 
-		driveDistance(17.5,80);						//robot should be halfway on the platform
-		clearTimer(T1);								//resets the timer to 0
-	  //bring the shoulder forward to add weight to the front wheels
-		while(time1[T1] < 1000){				//run for 1 seconds
-	   		motor[shoulder] = 60;
-    		motor[shoulderHelper] = -60;				
-		  	}  						
-		driveDistance(4, 80);						//drive forward 4 inches onto the platform			
-		wait1Msec(30000);								//wait 30 seconds until the autonomous round is over
-			} //end of outer while loop
-} //end of autonomous mode
 
 
 /*---------------------------------------------------------------------------*/
@@ -676,14 +759,19 @@ task usercontrol()
     }
     else if(vexRT[Btn6D] == 1) //moves shoulder down when you press button 6D (right lower trigger)
     {
-      motor[shoulder] = 60;
-      motor[shoulderHelper] = -60;
+    	if(SensorValue[shoulderStop] == 0){
+      		motor[shoulder] = 60;
+      		motor[shoulderHelper] = -60;
+      	}
     }
     else //stops the shoulder from moving when no buttons are pushed
     {
       motor[shoulder] = 0;
     } //end of shoulder
-
+		if(SensorValue[shoulderStop] == 1){
+				motor[shoulder] = -20;
+        motor[shoulderHelper] = 20;
+		}
     //to move the elbow
      if(vexRT[Btn5U] == 1) //moves the elbow up when you press button 5U (left upper trigger)
     {
